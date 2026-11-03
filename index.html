@@ -25,6 +25,24 @@
   </div>
 </noscript>
 
+<!-- GitHub HTML Preview rewrites relative links. Keep the site's hash routes
+     inside the current document so internal navigation never opens source. -->
+<script>
+(function () {
+  document.addEventListener('click', function (event) {
+    var link = event.target.closest && event.target.closest('a[href^="#/"]');
+    if (!link) return;
+    event.preventDefault();
+    var target = link.getAttribute('href');
+    if (window.location.hash === target) {
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
+    } else {
+      window.location.hash = target;
+    }
+  }, true);
+})();
+</script>
+
 <!-- =========================================================
      脚本加载顺序（改这里之前先读 docs/如何添加新案例.md）
      1. data.js         场景元数据
@@ -46,7 +64,7 @@
 <script src="assets/cases/assignment-cases.js?v=20261026a"></script>
 <!-- ↑ 新案例加在这里：<script src="assets/cases/你的案例.case.js"></script> -->
 
-<!-- 上传的案例包（localStorage）在这里恢复注册，必须在 shell.js 之前 -->
+<!-- 上传的案例包（localStorage）在这里恢复注册，必须在 shell 前 -->
 <script src="assets/core/case-demo-host.js?v=20261026a"></script>
 <script src="assets/core/case-upload.js?v=20261026a"></script>
 
