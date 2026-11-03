@@ -6,7 +6,7 @@
 
 Repository: <https://github.com/OneSh1r/solid-giggle>
 
-Public site: <https://onesh1r.github.io/solid-giggle/>
+Public site: <https://htmlpreview.github.io/?https://github.com/OneSh1r/solid-giggle/blob/main/index.html>
 
 ## 内容
 
@@ -24,7 +24,6 @@ Public site: <https://onesh1r.github.io/solid-giggle/>
 ## 提交材料
 
 - `submission/docs/网站关键亮点说明.pdf`
-- `submission/docs/可视化导论结课报告.pdf`
 - `submission/案例包/*.zip`
 - `submission/交付说明.md`
 
@@ -35,7 +34,7 @@ Public site: <https://onesh1r.github.io/solid-giggle/>
 - `assets/data.js`: 场景地图元数据
 - `assets/cases/`: 内置案例与交互运行时
 - `assets/core/`: 路由、外壳、案例导入和可视化组件
-- `submission/`: 课程提交文档、视频和独立案例包
+- `submission/`: 网站亮点说明与独立案例包
 
 ## 案例
 
