@@ -1,0 +1,150 @@
+{
+  "id": "eor-steam-cycle",
+  "sceneId": "e4",
+  "methods": [
+    "ts",
+    "opt"
+  ],
+  "title": "蒸汽吞吐注采优化：把单周期收益放到时间轴上",
+  "version": "1.0.0",
+  "updated": "2026-10-26",
+  "tabs": {
+    "background": {
+      "label": "专业背景",
+      "lede": "稠油蒸汽吞吐包含注汽、焖井、采液三个相互影响的阶段。现场常按上一周期经验调参，但提高本轮注汽量可能透支后续井底温度，单周期产量最高不一定让累计油汽比最优。 AI 的介入点是把“经验判断”变成可解释的候选排序与置信区间，同时保留人对工程安全的最终责任。",
+      "judge": [
+        {
+          "label": "任务类型",
+          "value": "时序 + 优化",
+          "desc": "多阶段、跨周期决策"
+        },
+        {
+          "label": "数据门槛",
+          "value": "中",
+          "desc": "单井 10—30 周期，需跨井共享"
+        },
+        {
+          "label": "可见收益",
+          "value": "提油汽比",
+          "desc": "减少无效注汽和过热风险"
+        },
+        {
+          "label": "技术难度",
+          "value": "中",
+          "desc": "周期短、状态依赖强"
+        }
+      ],
+      "sections": [
+        {
+          "no": 1,
+          "en": "PROBLEM",
+          "title": "当前做法与问题",
+          "html": "<p>稠油蒸汽吞吐包含注汽、焖井、采液三个相互影响的阶段。现场常按上一周期经验调参，但提高本轮注汽量可能透支后续井底温度，单周期产量最高不一定让累计油汽比最优。</p><div class=\"figure\"><svg viewBox=\"0 0 640 220\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"传统流程与智能介入对比\">\n  <defs><marker id=\"ar-e4\" markerWidth=\"8\" markerHeight=\"8\" refX=\"7\" refY=\"4\" orient=\"auto\"><path d=\"M0 0L8 4L0 8Z\" fill=\"#b46d3b\"/></marker></defs>\n  <rect x=\"8\" y=\"18\" width=\"380\" height=\"184\" rx=\"12\" fill=\"#f5f3ec\" stroke=\"#e4e0d5\"/>\n  <rect x=\"410\" y=\"18\" width=\"222\" height=\"184\" rx=\"12\" fill=\"#e7f2ed\" stroke=\"#a8cfc2\"/>\n  <text x=\"25\" y=\"43\" font-size=\"10\" font-family=\"monospace\" fill=\"#7d898c\">当前人工路径</text>\n  <text x=\"427\" y=\"43\" font-size=\"10\" font-family=\"monospace\" fill=\"#2f7d6b\">智能介入点</text>\n  <rect x=\"25\" y=\"66\" width=\"96\" height=\"53\" rx=\"7\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n  <text x=\"73\" y=\"88\" text-anchor=\"middle\" font-size=\"10\" fill=\"#536267\">人工调参</text>\n  <text x=\"73\" y=\"107\" text-anchor=\"middle\" font-size=\"10\" font-family=\"monospace\" fill=\"#213033\">按上周期</text><rect x=\"137\" y=\"66\" width=\"96\" height=\"53\" rx=\"7\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n  <text x=\"185\" y=\"88\" text-anchor=\"middle\" font-size=\"10\" fill=\"#536267\">单井周期数</text>\n  <text x=\"185\" y=\"107\" text-anchor=\"middle\" font-size=\"10\" font-family=\"monospace\" fill=\"#213033\">10—30</text><rect x=\"249\" y=\"66\" width=\"96\" height=\"53\" rx=\"7\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n  <text x=\"297\" y=\"88\" text-anchor=\"middle\" font-size=\"10\" fill=\"#536267\">累计最优差异</text>\n  <text x=\"297\" y=\"107\" text-anchor=\"middle\" font-size=\"10\" font-family=\"monospace\" fill=\"#213033\">8%—18%</text>\n  <path d=\"M25 139h335\" stroke=\"#d6d1c6\"/><path d=\"M25 157h255\" stroke=\"#d6d1c6\"/>\n  <text x=\"25\" y=\"178\" font-size=\"10.5\" fill=\"#536267\">经验驱动 → 结果不一致 → 复核成本高</text>\n  <path d=\"M373 108h31\" stroke=\"#b46d3b\" stroke-width=\"1.4\" marker-end=\"url(#ar-e4)\"/>\n  <circle cx=\"445\" cy=\"100\" r=\"21\" fill=\"#fff\" stroke=\"#2f7d6b\"/>\n  <text x=\"445\" y=\"104\" text-anchor=\"middle\" font-size=\"16\" font-family=\"monospace\" fill=\"#2f7d6b\">AI</text>\n  <path d=\"M475 100h28\" stroke=\"#2f7d6b\" stroke-width=\"1.3\"/>\n  <text x=\"512\" y=\"92\" font-size=\"10.5\" fill=\"#213033\">候选缩圈</text>\n  <text x=\"512\" y=\"108\" font-size=\"10.5\" fill=\"#213033\">置信度排序</text>\n  <text x=\"512\" y=\"124\" font-size=\"10.5\" fill=\"#213033\">人工决策</text>\n  <path d=\"M427 150h189\" stroke=\"#a8cfc2\"/><text x=\"427\" y=\"172\" font-size=\"10\" fill=\"#356354\">人负责异常确认与工程约束</text>\n</svg></div><div class=\"figcap\"><b>图</b><span>把传统人工路径与智能介入点放在同一条价值链上：AI 负责缩圈和排序，人负责工程约束与最终决策。</span></div>"
+        },
+        {
+          "no": 2,
+          "en": "INTERVENTION",
+          "title": "AI 能做什么",
+          "html": "<p>时序模型预测不同注汽量、焖井时间和采液速度下的周期产量与温度恢复，再以多周期累计产油和油汽比为优化目标。模型可以跨井共享规律，但需要用各井前几个周期校准。</p><div class=\"figure\"><svg viewBox=\"0 0 640 170\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"智能方法介入流程\">\n  <text x=\"20\" y=\"25\" font-size=\"10\" font-family=\"monospace\" fill=\"#7d898c\">多源观测</text>\n  <path d=\"M20 38h600\" stroke=\"#e4e0d5\"/>\n  <rect x=\"33.5\" y=\"58\" width=\"88\" height=\"48\" rx=\"7\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n    <text x=\"77.5\" y=\"80\" text-anchor=\"middle\" font-size=\"9.4\" fill=\"#213033\">注汽</text>\n    <text x=\"77.5\" y=\"94\" text-anchor=\"middle\" font-size=\"8\" font-family=\"monospace\" fill=\"#7d898c\">01</text>\n    <path d=\"M122.5 82h7\" stroke=\"#b46d3b\" stroke-width=\"1.2\"/><rect x=\"130.5\" y=\"58\" width=\"88\" height=\"48\" rx=\"7\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n    <text x=\"174.5\" y=\"80\" text-anchor=\"middle\" font-size=\"9.4\" fill=\"#213033\">焖井</text>\n    <text x=\"174.5\" y=\"94\" text-anchor=\"middle\" font-size=\"8\" font-family=\"monospace\" fill=\"#7d898c\">02</text>\n    <path d=\"M219.5 82h7\" stroke=\"#b46d3b\" stroke-width=\"1.2\"/><rect x=\"227.5\" y=\"58\" width=\"88\" height=\"48\" rx=\"7\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n    <text x=\"271.5\" y=\"80\" text-anchor=\"middle\" font-size=\"9.4\" fill=\"#213033\">采液</text>\n    <text x=\"271.5\" y=\"94\" text-anchor=\"middle\" font-size=\"8\" font-family=\"monospace\" fill=\"#7d898c\">03</text>\n    <path d=\"M316.5 82h7\" stroke=\"#b46d3b\" stroke-width=\"1.2\"/><rect x=\"324.5\" y=\"58\" width=\"88\" height=\"48\" rx=\"7\" fill=\"#e7f2ed\" stroke=\"#a8cfc2\"/>\n    <text x=\"368.5\" y=\"80\" text-anchor=\"middle\" font-size=\"9.4\" fill=\"#213033\">井温恢复</text>\n    <text x=\"368.5\" y=\"94\" text-anchor=\"middle\" font-size=\"8\" font-family=\"monospace\" fill=\"#7d898c\">04</text>\n    <path d=\"M413.5 82h7\" stroke=\"#b46d3b\" stroke-width=\"1.2\"/><rect x=\"421.5\" y=\"58\" width=\"88\" height=\"48\" rx=\"7\" fill=\"#e7f2ed\" stroke=\"#a8cfc2\"/>\n    <text x=\"465.5\" y=\"80\" text-anchor=\"middle\" font-size=\"9.4\" fill=\"#213033\">时序模型</text>\n    <text x=\"465.5\" y=\"94\" text-anchor=\"middle\" font-size=\"8\" font-family=\"monospace\" fill=\"#7d898c\">05</text>\n    <path d=\"M510.5 82h7\" stroke=\"#b46d3b\" stroke-width=\"1.2\"/><rect x=\"518.5\" y=\"58\" width=\"88\" height=\"48\" rx=\"7\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n    <text x=\"562.5\" y=\"80\" text-anchor=\"middle\" font-size=\"9.4\" fill=\"#213033\">滚动优化</text>\n    <text x=\"562.5\" y=\"94\" text-anchor=\"middle\" font-size=\"8\" font-family=\"monospace\" fill=\"#7d898c\">06</text>\n    \n  <path d=\"M20 135h600\" stroke=\"#e4e0d5\"/>\n  <text x=\"20\" y=\"155\" font-size=\"10.5\" fill=\"#356354\">最终输出：未来周期注采参数与油汽比</text>\n  <text x=\"620\" y=\"155\" text-anchor=\"end\" font-size=\"9.5\" font-family=\"monospace\" fill=\"#b46d3b\">HUMAN-IN-THE-LOOP</text>\n</svg></div><div class=\"figcap\"><b>图</b><span>智能方法不是替代整个石油工序，而是嵌入一个可定义的子问题：输入多源观测，输出候选、风险或几何。</span></div>"
+        },
+        {
+          "no": 3,
+          "en": "DATA",
+          "title": "你需要准备什么",
+          "html": "<p>最低需要逐周期注汽量、干度、焖井时间、初期采液速度、产油、产液、井温与含水。单井通常只有几十个周期，必须跨井建模，并保留井号与周期序号，避免把不同井混为独立样本。</p><div class=\"figure\"><svg viewBox=\"0 0 640 210\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"数据准备矩阵\">\n  <rect x=\"8\" y=\"8\" width=\"624\" height=\"194\" rx=\"10\" fill=\"#f8f7f2\" stroke=\"#e4e0d5\"/>\n  <text x=\"24\" y=\"31\" font-size=\"10\" font-family=\"monospace\" fill=\"#7d898c\">DATA READINESS · 数据准备就绪度</text>\n  <rect x=\"24\" y=\"54\" width=\"108\" height=\"39\" rx=\"6\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n    <circle cx=\"38\" cy=\"70\" r=\"4\" fill=\"#2f7d6b\" opacity=\".78\"/>\n    <text x=\"48\" y=\"74\" font-size=\"9.5\" fill=\"#213033\">注汽量</text>\n    <rect x=\"36\" y=\"81\" width=\"78\" height=\"3\" rx=\"1.5\" fill=\"#e9e6de\"/>\n    <rect x=\"36\" y=\"81\" width=\"70\" height=\"3\" rx=\"1.5\" fill=\"#2f7d6b\" opacity=\".76\"/><rect x=\"144\" y=\"54\" width=\"108\" height=\"39\" rx=\"6\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n    <circle cx=\"158\" cy=\"70\" r=\"4\" fill=\"#2f7d6b\" opacity=\".78\"/>\n    <text x=\"168\" y=\"74\" font-size=\"9.5\" fill=\"#213033\">干度</text>\n    <rect x=\"156\" y=\"81\" width=\"78\" height=\"3\" rx=\"1.5\" fill=\"#e9e6de\"/>\n    <rect x=\"156\" y=\"81\" width=\"70\" height=\"3\" rx=\"1.5\" fill=\"#2f7d6b\" opacity=\".76\"/><rect x=\"264\" y=\"54\" width=\"108\" height=\"39\" rx=\"6\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n    <circle cx=\"278\" cy=\"70\" r=\"4\" fill=\"#b46d3b\" opacity=\".78\"/>\n    <text x=\"288\" y=\"74\" font-size=\"9.5\" fill=\"#213033\">焖井</text>\n    <rect x=\"276\" y=\"81\" width=\"78\" height=\"3\" rx=\"1.5\" fill=\"#e9e6de\"/>\n    <rect x=\"276\" y=\"81\" width=\"58\" height=\"3\" rx=\"1.5\" fill=\"#d1a23f\" opacity=\".76\"/><rect x=\"384\" y=\"54\" width=\"108\" height=\"39\" rx=\"6\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n    <circle cx=\"398\" cy=\"70\" r=\"4\" fill=\"#b46d3b\" opacity=\".78\"/>\n    <text x=\"408\" y=\"74\" font-size=\"9.5\" fill=\"#213033\">初期采液</text>\n    <rect x=\"396\" y=\"81\" width=\"78\" height=\"3\" rx=\"1.5\" fill=\"#e9e6de\"/>\n    <rect x=\"396\" y=\"81\" width=\"48\" height=\"3\" rx=\"1.5\" fill=\"#d1a23f\" opacity=\".76\"/><rect x=\"504\" y=\"54\" width=\"108\" height=\"39\" rx=\"6\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n    <circle cx=\"518\" cy=\"70\" r=\"4\" fill=\"#2f7d6b\" opacity=\".78\"/>\n    <text x=\"528\" y=\"74\" font-size=\"9.5\" fill=\"#213033\">井温</text>\n    <rect x=\"516\" y=\"81\" width=\"78\" height=\"3\" rx=\"1.5\" fill=\"#e9e6de\"/>\n    <rect x=\"516\" y=\"81\" width=\"70\" height=\"3\" rx=\"1.5\" fill=\"#2f7d6b\" opacity=\".76\"/><rect x=\"24\" y=\"106\" width=\"108\" height=\"39\" rx=\"6\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n    <circle cx=\"38\" cy=\"122\" r=\"4\" fill=\"#2f7d6b\" opacity=\".78\"/>\n    <text x=\"48\" y=\"126\" font-size=\"9.5\" fill=\"#213033\">含水</text>\n    <rect x=\"36\" y=\"133\" width=\"78\" height=\"3\" rx=\"1.5\" fill=\"#e9e6de\"/>\n    <rect x=\"36\" y=\"133\" width=\"70\" height=\"3\" rx=\"1.5\" fill=\"#2f7d6b\" opacity=\".76\"/>\n  <text x=\"24\" y=\"185\" font-size=\"9.5\" fill=\"#536267\">建议先解决：深度/时间对齐 · 标签口径 · 异常段记录，再讨论增加模型规模。</text>\n</svg></div><div class=\"figcap\"><b>图</b><span>先检查数据的时间/深度对齐和标签口径。缺少数值可以用模型补，缺少可追溯的工程含义则无法可靠验证。</span></div><ul style=\"margin:12px 0 0;padding-left:0;list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px\"><li><b>注汽量</b><span>核心输入</span></li><li><b>干度</b><span>关键约束</span></li><li><b>焖井</b><span>长尾/异常</span></li><li><b>初期采液</b><span>空间或时间对齐</span></li><li><b>井温</b><span>人工复核依据</span></li></ul>"
+        },
+        {
+          "no": 4,
+          "en": "DIFFICULTY",
+          "title": "技术难度与参考方向",
+          "html": "<p><span class=\"dtag\" data-d=\"中\">难度 中</span> <span class=\"small muted\">周期之间存在状态依赖，样本又短。短期产量预测容易，难的是在井底温度、泵能力和油汽比约束下给出多周期策略。</span></p><div class=\"figure\"><svg viewBox=\"0 0 640 188\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"技术风险剖面\">\n  <text x=\"20\" y=\"22\" font-size=\"10\" font-family=\"monospace\" fill=\"#7d898c\">RISK PROFILE · 越靠右越需要验证</text>\n  <text x=\"20\" y=\"49\" font-size=\"9.5\" fill=\"#536267\">周期过短</text>\n    <rect x=\"104\" y=\"40\" width=\"430\" height=\"9\" rx=\"4.5\" fill=\"#ece9e1\"/>\n    <rect x=\"104\" y=\"40\" width=\"309.59999999999997\" height=\"9\" rx=\"4.5\" fill=\"#d1a23f\" opacity=\".76\"/>\n    <text x=\"548\" y=\"49\" font-size=\"9\" font-family=\"monospace\" fill=\"#7d898c\">72</text><text x=\"20\" y=\"80\" font-size=\"9.5\" fill=\"#536267\">跨井差异</text>\n    <rect x=\"104\" y=\"71\" width=\"430\" height=\"9\" rx=\"4.5\" fill=\"#ece9e1\"/>\n    <rect x=\"104\" y=\"71\" width=\"270.9\" height=\"9\" rx=\"4.5\" fill=\"#2f7d6b\" opacity=\".76\"/>\n    <text x=\"548\" y=\"80\" font-size=\"9\" font-family=\"monospace\" fill=\"#7d898c\">63</text><text x=\"20\" y=\"111\" font-size=\"9.5\" fill=\"#536267\">井温缺失</text>\n    <rect x=\"104\" y=\"102\" width=\"430\" height=\"9\" rx=\"4.5\" fill=\"#ece9e1\"/>\n    <rect x=\"104\" y=\"102\" width=\"219.29999999999998\" height=\"9\" rx=\"4.5\" fill=\"#2f7d6b\" opacity=\".76\"/>\n    <text x=\"548\" y=\"111\" font-size=\"9\" font-family=\"monospace\" fill=\"#7d898c\">51</text><text x=\"20\" y=\"142\" font-size=\"9.5\" fill=\"#536267\">外推</text>\n    <rect x=\"104\" y=\"133\" width=\"430\" height=\"9\" rx=\"4.5\" fill=\"#ece9e1\"/>\n    <rect x=\"104\" y=\"133\" width=\"197.79999999999998\" height=\"9\" rx=\"4.5\" fill=\"#2f7d6b\" opacity=\".76\"/>\n    <text x=\"548\" y=\"142\" font-size=\"9\" font-family=\"monospace\" fill=\"#7d898c\">46</text>\n  <text x=\"20\" y=\"176\" font-size=\"9.5\" fill=\"#213033\">高难度不等于不可做：先做可解释基线，再按不确定性设置人工复核门槛。</text>\n</svg></div><div class=\"figcap\"><b>图</b><span>不同案例的卡点不同：这里把主要风险拆开，避免“模型分数很高但工程不可用”。</span></div><div class=\"refs\"><span class=\"ref\">序列预测</span><span class=\"ref\">滚动优化</span><span class=\"ref\">跨井迁移</span><span class=\"ref\">约束优化</span></div>"
+        }
+      ]
+    },
+    "workflow": {
+      "label": "案例流程",
+      "title": "蒸汽吞吐注采优化：把单周期收益放到时间轴上 · 一段可复用的落地流程",
+      "lead": [
+        "这个案例把“E4 场景”拆成四步：先把数据变成同一时间/空间基准，再让模型缩圈，最后把不确定性和工程约束交回人。",
+        "每个步骤下方都有一张对应的流程图，说明这一步实际输入什么、输出什么、最容易死在哪里。"
+      ],
+      "stats": [
+        [
+          "训练井",
+          "68 口"
+        ],
+        [
+          "周期样本",
+          "1,740"
+        ],
+        [
+          "预测步长",
+          "6 周期"
+        ],
+        [
+          "目标",
+          "油汽比 ≥0.58"
+        ]
+      ],
+      "steps": [
+        {
+          "name": "周期边界与状态编码",
+          "role": "数据",
+          "do": "把每次吞吐拆成注汽、焖井、采液阶段，并把上一周期末温度、含水与产量作为下一周期初始状态。",
+          "effect": "让模型学习周期之间的真正传递关系。",
+          "trap": "把每个周期当独立样本，会丢失最关键的跨周期依赖。",
+          "visual": "<svg viewBox=\"0 0 620 82\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"周期边界与状态编码步骤示意\">\n    <rect x=\"2\" y=\"8\" width=\"616\" height=\"66\" rx=\"9\" fill=\"#f8f7f2\" stroke=\"#e4e0d5\"/>\n    <text x=\"17\" y=\"28\" font-size=\"9\" font-family=\"monospace\" fill=\"#7d898c\">STEP 01 · 数据</text>\n    <rect x=\"16\" y=\"38\" width=\"126\" height=\"24\" rx=\"5\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <text x=\"79\" y=\"54\" text-anchor=\"middle\" font-size=\"9\" fill=\"#213033\">注汽</text>\n      <path d=\"M143 50h27\" stroke=\"#b46d3b\" stroke-width=\"1\"/><rect x=\"182\" y=\"38\" width=\"126\" height=\"24\" rx=\"5\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <text x=\"245\" y=\"54\" text-anchor=\"middle\" font-size=\"9\" fill=\"#213033\">焖井</text>\n      <path d=\"M309 50h27\" stroke=\"#b46d3b\" stroke-width=\"1\"/><rect x=\"348\" y=\"38\" width=\"126\" height=\"24\" rx=\"5\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <text x=\"411\" y=\"54\" text-anchor=\"middle\" font-size=\"9\" fill=\"#213033\">采液</text>\n      \n    <rect x=\"523\" y=\"37\" width=\"80\" height=\"27\" rx=\"6\" fill=\"#e7f2ed\" stroke=\"#a8cfc2\"/>\n    <text x=\"563\" y=\"54\" text-anchor=\"middle\" font-size=\"8.6\" font-family=\"monospace\" fill=\"#2f7d6b\">状态 8 维</text>\n  </svg>"
+        },
+        {
+          "name": "跨井时序预测",
+          "role": "模型",
+          "do": "使用共享时序骨干加井级嵌入，预测未来 6 个周期的产油、产液和井温。",
+          "effect": "在单井样本很少时借用其他井的共性。",
+          "trap": "不同油藏类型必须分组，否则共享会变成负迁移。",
+          "visual": "<svg viewBox=\"0 0 620 82\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"跨井时序预测步骤示意\">\n    <rect x=\"2\" y=\"8\" width=\"616\" height=\"66\" rx=\"9\" fill=\"#f8f7f2\" stroke=\"#e4e0d5\"/>\n    <text x=\"17\" y=\"28\" font-size=\"9\" font-family=\"monospace\" fill=\"#7d898c\">STEP 02 · 模型</text>\n    <rect x=\"16\" y=\"38\" width=\"126\" height=\"24\" rx=\"5\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <text x=\"79\" y=\"54\" text-anchor=\"middle\" font-size=\"9\" fill=\"#213033\">共享模型</text>\n      <path d=\"M143 50h27\" stroke=\"#b46d3b\" stroke-width=\"1\"/><rect x=\"182\" y=\"38\" width=\"126\" height=\"24\" rx=\"5\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <text x=\"245\" y=\"54\" text-anchor=\"middle\" font-size=\"9\" fill=\"#213033\">井级校准</text>\n      <path d=\"M309 50h27\" stroke=\"#b46d3b\" stroke-width=\"1\"/><rect x=\"348\" y=\"38\" width=\"126\" height=\"24\" rx=\"5\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <text x=\"411\" y=\"54\" text-anchor=\"middle\" font-size=\"9\" fill=\"#213033\">概率预测</text>\n      \n    <rect x=\"523\" y=\"37\" width=\"80\" height=\"27\" rx=\"6\" fill=\"#e7f2ed\" stroke=\"#a8cfc2\"/>\n    <text x=\"563\" y=\"54\" text-anchor=\"middle\" font-size=\"8.6\" font-family=\"monospace\" fill=\"#2f7d6b\">6 周期</text>\n  </svg>"
+        },
+        {
+          "name": "滚动约束优化",
+          "role": "优化",
+          "do": "在泵能力、井底温度和累计油汽比约束下搜索每周期注汽与采液参数。",
+          "effect": "把单周期最优改为未来窗口的累计最优。",
+          "trap": "每一步都重算到末周期会导致策略频繁跳变，应加入调整平滑约束。",
+          "visual": "<svg viewBox=\"0 0 620 82\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"滚动约束优化步骤示意\">\n    <rect x=\"2\" y=\"8\" width=\"616\" height=\"66\" rx=\"9\" fill=\"#f8f7f2\" stroke=\"#e4e0d5\"/>\n    <text x=\"17\" y=\"28\" font-size=\"9\" font-family=\"monospace\" fill=\"#7d898c\">STEP 03 · 优化</text>\n    <rect x=\"16\" y=\"38\" width=\"126\" height=\"24\" rx=\"5\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <text x=\"79\" y=\"54\" text-anchor=\"middle\" font-size=\"9\" fill=\"#213033\">策略搜索</text>\n      <path d=\"M143 50h27\" stroke=\"#b46d3b\" stroke-width=\"1\"/><rect x=\"182\" y=\"38\" width=\"126\" height=\"24\" rx=\"5\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <text x=\"245\" y=\"54\" text-anchor=\"middle\" font-size=\"9\" fill=\"#213033\">滚动窗口</text>\n      <path d=\"M309 50h27\" stroke=\"#b46d3b\" stroke-width=\"1\"/><rect x=\"348\" y=\"38\" width=\"126\" height=\"24\" rx=\"5\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <text x=\"411\" y=\"54\" text-anchor=\"middle\" font-size=\"9\" fill=\"#213033\">约束检查</text>\n      \n    <rect x=\"523\" y=\"37\" width=\"80\" height=\"27\" rx=\"6\" fill=\"#e7f2ed\" stroke=\"#a8cfc2\"/>\n    <text x=\"563\" y=\"54\" text-anchor=\"middle\" font-size=\"8.6\" font-family=\"monospace\" fill=\"#2f7d6b\">油汽比 0.61</text>\n  </svg>"
+        },
+        {
+          "name": "现场执行与回填",
+          "role": "闭环",
+          "do": "执行第一阶段策略，记录温度和产量，再把真实状态回填下一轮优化。",
+          "effect": "形成从预测到现场再到再优化的闭环。",
+          "trap": "只用计划值而不是实际执行值回填，闭环会逐渐漂移。",
+          "visual": "<svg viewBox=\"0 0 620 82\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"现场执行与回填步骤示意\">\n    <rect x=\"2\" y=\"8\" width=\"616\" height=\"66\" rx=\"9\" fill=\"#f8f7f2\" stroke=\"#e4e0d5\"/>\n    <text x=\"17\" y=\"28\" font-size=\"9\" font-family=\"monospace\" fill=\"#7d898c\">STEP 04 · 闭环</text>\n    <rect x=\"16\" y=\"38\" width=\"126\" height=\"24\" rx=\"5\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <text x=\"79\" y=\"54\" text-anchor=\"middle\" font-size=\"9\" fill=\"#213033\">执行</text>\n      <path d=\"M143 50h27\" stroke=\"#b46d3b\" stroke-width=\"1\"/><rect x=\"182\" y=\"38\" width=\"126\" height=\"24\" rx=\"5\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <text x=\"245\" y=\"54\" text-anchor=\"middle\" font-size=\"9\" fill=\"#213033\">监测</text>\n      <path d=\"M309 50h27\" stroke=\"#b46d3b\" stroke-width=\"1\"/><rect x=\"348\" y=\"38\" width=\"126\" height=\"24\" rx=\"5\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <text x=\"411\" y=\"54\" text-anchor=\"middle\" font-size=\"9\" fill=\"#213033\">再优化</text>\n      \n    <rect x=\"523\" y=\"37\" width=\"80\" height=\"27\" rx=\"6\" fill=\"#e7f2ed\" stroke=\"#a8cfc2\"/>\n    <text x=\"563\" y=\"54\" text-anchor=\"middle\" font-size=\"8.6\" font-family=\"monospace\" fill=\"#2f7d6b\">每周更新</text>\n  </svg>"
+        }
+      ],
+      "metrics": {
+        "title": "怎么算“做对了”",
+        "html": "<div class=\"figure\"><svg viewBox=\"0 0 620 168\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"四步案例流程总览\">\n    <text x=\"14\" y=\"26\" font-size=\"9.5\" font-family=\"monospace\" fill=\"#7d898c\">WORKFLOW MAP · 输入 / 处理 / 输出 / 验收</text>\n    <path d=\"M15 39h590\" stroke=\"#e4e0d5\"/>\n    <rect x=\"14\" y=\"54\" width=\"132\" height=\"82\" rx=\"8\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <rect x=\"14\" y=\"54\" width=\"3\" height=\"82\" rx=\"1.5\" fill=\"#2f7d6b\"/>\n      <text x=\"26\" y=\"75\" font-size=\"9\" font-family=\"monospace\" fill=\"#2f7d6b\">STEP 01</text>\n      <text x=\"26\" y=\"94\" font-size=\"10\" fill=\"#213033\">周期边界与状态</text>\n      <text x=\"26\" y=\"108\" font-size=\"10\" fill=\"#213033\">编码</text>\n      <text x=\"26\" y=\"126\" font-size=\"8.2\" fill=\"#7d898c\">注汽 / 焖井 / 采液</text>\n      <path d=\"M150 95h11\" stroke=\"#b46d3b\" stroke-width=\"1.3\"/><rect x=\"165\" y=\"54\" width=\"132\" height=\"82\" rx=\"8\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <rect x=\"165\" y=\"54\" width=\"3\" height=\"82\" rx=\"1.5\" fill=\"#41699b\"/>\n      <text x=\"177\" y=\"75\" font-size=\"9\" font-family=\"monospace\" fill=\"#41699b\">STEP 02</text>\n      <text x=\"177\" y=\"94\" font-size=\"10\" fill=\"#213033\">跨井时序预测</text>\n      <text x=\"177\" y=\"108\" font-size=\"10\" fill=\"#213033\"></text>\n      <text x=\"177\" y=\"126\" font-size=\"8.2\" fill=\"#7d898c\">共享模型 / 井级校准 / 概率预测</text>\n      <path d=\"M301 95h11\" stroke=\"#b46d3b\" stroke-width=\"1.3\"/><rect x=\"316\" y=\"54\" width=\"132\" height=\"82\" rx=\"8\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <rect x=\"316\" y=\"54\" width=\"3\" height=\"82\" rx=\"1.5\" fill=\"#b46d3b\"/>\n      <text x=\"328\" y=\"75\" font-size=\"9\" font-family=\"monospace\" fill=\"#b46d3b\">STEP 03</text>\n      <text x=\"328\" y=\"94\" font-size=\"10\" fill=\"#213033\">滚动约束优化</text>\n      <text x=\"328\" y=\"108\" font-size=\"10\" fill=\"#213033\"></text>\n      <text x=\"328\" y=\"126\" font-size=\"8.2\" fill=\"#7d898c\">策略搜索 / 滚动窗口 / 约束检查</text>\n      <path d=\"M452 95h11\" stroke=\"#b46d3b\" stroke-width=\"1.3\"/><rect x=\"467\" y=\"54\" width=\"132\" height=\"82\" rx=\"8\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <rect x=\"467\" y=\"54\" width=\"3\" height=\"82\" rx=\"1.5\" fill=\"#7e5a8d\"/>\n      <text x=\"479\" y=\"75\" font-size=\"9\" font-family=\"monospace\" fill=\"#7e5a8d\">STEP 04</text>\n      <text x=\"479\" y=\"94\" font-size=\"10\" fill=\"#213033\">现场执行与回填</text>\n      <text x=\"479\" y=\"108\" font-size=\"10\" fill=\"#213033\"></text>\n      <text x=\"479\" y=\"126\" font-size=\"8.2\" fill=\"#7d898c\">执行 / 监测 / 再优化</text>\n      \n    <text x=\"14\" y=\"156\" font-size=\"9.5\" fill=\"#2f7d6b\">人负责异常确认、工程约束与最终决策；AI 负责缩圈、排序与不确定性提示。</text>\n  </svg></div><div class=\"figcap\"><b>流程总览</b><span>四步共享同一组术语和验收指标，避免从专业背景到交互示范时发生语义漂移。</span></div><p>主指标是未来 6 周期累计产油和累计油汽比，次指标是井底温度最低值与泵负荷超限次数。只比较单周期峰值产量，会把过度注汽的高能耗方案误判为更优。</p><div style=\"display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px\"><div style=\"padding:10px 12px;background:#e7f2ed;border-radius:7px\"><b>先看工程收益</b><br><span class=\"small muted\">时间、误差或风险是否真的下降。</span></div><div style=\"padding:10px 12px;background:#f8ecdf;border-radius:7px\"><b>再看模型可靠性</b><br><span class=\"small muted\">外推、迁移和不确定性是否被显式处理。</span></div></div>"
+      },
+      "fails": [
+        {
+          "name": "单周期短视",
+          "why": "只看本轮产量，忽略高温蒸汽对后续周期和能耗的影响。"
+        },
+        {
+          "name": "井型混建",
+          "why": "把薄层稠油与厚层稠油混在一个共享模型中，产生负迁移。"
+        },
+        {
+          "name": "计划值回填",
+          "why": "用计划注汽量而非实际值更新状态，闭环误差不断累积。"
+        }
+      ]
+    },
+    "demo": {
+      "mode": "auto",
+      "html": "demo/index.html",
+      "label": "可运行示范",
+      "intro": "拖动参数，观察智能化方法如何把一个石油场景变成可解释的候选和风险判断。",
+      "height": 620
+    }
+  }
+}

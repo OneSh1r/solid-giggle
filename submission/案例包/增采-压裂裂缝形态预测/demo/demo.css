@@ -1,0 +1,11 @@
+:root{
+  color-scheme: light;
+  --paper:#fbfaf6; --ink:#213033; --line:#e4e0d5;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; padding:14px; background:var(--paper); color:var(--ink);
+  font-family:"Inter","PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+}
+#case-root{max-width:980px;margin:0 auto}
+@media (max-width:560px){body{padding:7px}}

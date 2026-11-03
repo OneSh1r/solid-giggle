@@ -25,9 +25,10 @@ Public site: <https://onesh1r.github.io/solid-giggle/>
 
 - `submission/docs/网站关键亮点说明.pdf`
 - `submission/docs/可视化导论结课报告.pdf`
-- `submission/video/石油勘探开发智能化可能性地图_网站演示.mp4`
 - `submission/案例包/*.zip`
 - `submission/交付说明.md`
+
+讲解视频和结课报告保留在本地提交材料中，未上传到 GitHub。
 
 ## 技术结构
 

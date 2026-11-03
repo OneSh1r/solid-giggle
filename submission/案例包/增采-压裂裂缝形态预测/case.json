@@ -1,0 +1,150 @@
+{
+  "id": "eor-fracture-geometry",
+  "sceneId": "e2",
+  "methods": [
+    "cv",
+    "opt"
+  ],
+  "title": "压裂裂缝形态预测：多源融合与不确定带",
+  "version": "1.0.0",
+  "updated": "2026-10-26",
+  "tabs": {
+    "background": {
+      "label": "专业背景",
+      "lede": "裂缝长度、高度与导流能力决定压裂是否真正连接了储量。地下裂缝几乎不能直接观测，解释员只能把微地震事件、施工压力、地质模型和示踪产剖拼在一起，单一数据都带有明显多解性。 AI 的介入点是把“经验判断”变成可解释的候选排序与置信区间，同时保留人对工程安全的最终责任。",
+      "judge": [
+        {
+          "label": "任务类型",
+          "value": "多源反演",
+          "desc": "点云 + 时序 + 先验"
+        },
+        {
+          "label": "数据门槛",
+          "value": "高",
+          "desc": "需要按段对齐的验证数据"
+        },
+        {
+          "label": "可见收益",
+          "value": "解释提速",
+          "desc": "事件过滤与几何缩圈"
+        },
+        {
+          "label": "技术难度",
+          "value": "高",
+          "desc": "真值不可直接观测"
+        }
+      ],
+      "sections": [
+        {
+          "no": 1,
+          "en": "PROBLEM",
+          "title": "当前做法与问题",
+          "html": "<p>裂缝长度、高度与导流能力决定压裂是否真正连接了储量。地下裂缝几乎不能直接观测，解释员只能把微地震事件、施工压力、地质模型和示踪产剖拼在一起，单一数据都带有明显多解性。</p><div class=\"figure\"><svg viewBox=\"0 0 640 220\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"传统流程与智能介入对比\">\n  <defs><marker id=\"ar-e2\" markerWidth=\"8\" markerHeight=\"8\" refX=\"7\" refY=\"4\" orient=\"auto\"><path d=\"M0 0L8 4L0 8Z\" fill=\"#b46d3b\"/></marker></defs>\n  <rect x=\"8\" y=\"18\" width=\"380\" height=\"184\" rx=\"12\" fill=\"#f5f3ec\" stroke=\"#e4e0d5\"/>\n  <rect x=\"410\" y=\"18\" width=\"222\" height=\"184\" rx=\"12\" fill=\"#e7f2ed\" stroke=\"#a8cfc2\"/>\n  <text x=\"25\" y=\"43\" font-size=\"10\" font-family=\"monospace\" fill=\"#7d898c\">当前人工路径</text>\n  <text x=\"427\" y=\"43\" font-size=\"10\" font-family=\"monospace\" fill=\"#2f7d6b\">智能介入点</text>\n  <rect x=\"25\" y=\"66\" width=\"96\" height=\"53\" rx=\"7\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n  <text x=\"73\" y=\"88\" text-anchor=\"middle\" font-size=\"10\" fill=\"#536267\">人工解释</text>\n  <text x=\"73\" y=\"107\" text-anchor=\"middle\" font-size=\"10\" font-family=\"monospace\" fill=\"#213033\">8—16 h/段</text><rect x=\"137\" y=\"66\" width=\"96\" height=\"53\" rx=\"7\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n  <text x=\"185\" y=\"88\" text-anchor=\"middle\" font-size=\"10\" fill=\"#536267\">事件有效率</text>\n  <text x=\"185\" y=\"107\" text-anchor=\"middle\" font-size=\"10\" font-family=\"monospace\" fill=\"#213033\">45%—80%</text><rect x=\"249\" y=\"66\" width=\"96\" height=\"53\" rx=\"7\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n  <text x=\"297\" y=\"88\" text-anchor=\"middle\" font-size=\"10\" fill=\"#536267\">多解形态</text>\n  <text x=\"297\" y=\"107\" text-anchor=\"middle\" font-size=\"10\" font-family=\"monospace\" fill=\"#213033\">常见</text>\n  <path d=\"M25 139h335\" stroke=\"#d6d1c6\"/><path d=\"M25 157h255\" stroke=\"#d6d1c6\"/>\n  <text x=\"25\" y=\"178\" font-size=\"10.5\" fill=\"#536267\">经验驱动 → 结果不一致 → 复核成本高</text>\n  <path d=\"M373 108h31\" stroke=\"#b46d3b\" stroke-width=\"1.4\" marker-end=\"url(#ar-e2)\"/>\n  <circle cx=\"445\" cy=\"100\" r=\"21\" fill=\"#fff\" stroke=\"#2f7d6b\"/>\n  <text x=\"445\" y=\"104\" text-anchor=\"middle\" font-size=\"16\" font-family=\"monospace\" fill=\"#2f7d6b\">AI</text>\n  <path d=\"M475 100h28\" stroke=\"#2f7d6b\" stroke-width=\"1.3\"/>\n  <text x=\"512\" y=\"92\" font-size=\"10.5\" fill=\"#213033\">候选缩圈</text>\n  <text x=\"512\" y=\"108\" font-size=\"10.5\" fill=\"#213033\">置信度排序</text>\n  <text x=\"512\" y=\"124\" font-size=\"10.5\" fill=\"#213033\">人工决策</text>\n  <path d=\"M427 150h189\" stroke=\"#a8cfc2\"/><text x=\"427\" y=\"172\" font-size=\"10\" fill=\"#356354\">人负责异常确认与工程约束</text>\n</svg></div><div class=\"figcap\"><b>图</b><span>把传统人工路径与智能介入点放在同一条价值链上：AI 负责缩圈和排序，人负责工程约束与最终决策。</span></div>"
+        },
+        {
+          "no": 2,
+          "en": "INTERVENTION",
+          "title": "AI 能做什么",
+          "html": "<p>深度学习把微地震点云、施工曲线和地质先验融合为裂缝概率体，再用正则化和地质约束压制不合理形态。结果必须连同不确定范围一起输出，而不是一条看似精确的裂缝线。</p><div class=\"figure\"><svg viewBox=\"0 0 640 170\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"智能方法介入流程\">\n  <text x=\"20\" y=\"25\" font-size=\"10\" font-family=\"monospace\" fill=\"#7d898c\">多源观测</text>\n  <path d=\"M20 38h600\" stroke=\"#e4e0d5\"/>\n  <rect x=\"33.5\" y=\"58\" width=\"88\" height=\"48\" rx=\"7\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n    <text x=\"77.5\" y=\"80\" text-anchor=\"middle\" font-size=\"9.4\" fill=\"#213033\">微地震事件</text>\n    <text x=\"77.5\" y=\"94\" text-anchor=\"middle\" font-size=\"8\" font-family=\"monospace\" fill=\"#7d898c\">01</text>\n    <path d=\"M122.5 82h7\" stroke=\"#b46d3b\" stroke-width=\"1.2\"/><rect x=\"130.5\" y=\"58\" width=\"88\" height=\"48\" rx=\"7\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n    <text x=\"174.5\" y=\"80\" text-anchor=\"middle\" font-size=\"9.4\" fill=\"#213033\">施工曲线</text>\n    <text x=\"174.5\" y=\"94\" text-anchor=\"middle\" font-size=\"8\" font-family=\"monospace\" fill=\"#7d898c\">02</text>\n    <path d=\"M219.5 82h7\" stroke=\"#b46d3b\" stroke-width=\"1.2\"/><rect x=\"227.5\" y=\"58\" width=\"88\" height=\"48\" rx=\"7\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n    <text x=\"271.5\" y=\"80\" text-anchor=\"middle\" font-size=\"9.4\" fill=\"#213033\">地质先验</text>\n    <text x=\"271.5\" y=\"94\" text-anchor=\"middle\" font-size=\"8\" font-family=\"monospace\" fill=\"#7d898c\">03</text>\n    <path d=\"M316.5 82h7\" stroke=\"#b46d3b\" stroke-width=\"1.2\"/><rect x=\"324.5\" y=\"58\" width=\"88\" height=\"48\" rx=\"7\" fill=\"#e7f2ed\" stroke=\"#a8cfc2\"/>\n    <text x=\"368.5\" y=\"80\" text-anchor=\"middle\" font-size=\"9.4\" fill=\"#213033\">多模态模型</text>\n    <text x=\"368.5\" y=\"94\" text-anchor=\"middle\" font-size=\"8\" font-family=\"monospace\" fill=\"#7d898c\">04</text>\n    <path d=\"M413.5 82h7\" stroke=\"#b46d3b\" stroke-width=\"1.2\"/><rect x=\"421.5\" y=\"58\" width=\"88\" height=\"48\" rx=\"7\" fill=\"#e7f2ed\" stroke=\"#a8cfc2\"/>\n    <text x=\"465.5\" y=\"80\" text-anchor=\"middle\" font-size=\"9.4\" fill=\"#213033\">几何概率体</text>\n    <text x=\"465.5\" y=\"94\" text-anchor=\"middle\" font-size=\"8\" font-family=\"monospace\" fill=\"#7d898c\">05</text>\n    <path d=\"M510.5 82h7\" stroke=\"#b46d3b\" stroke-width=\"1.2\"/><rect x=\"518.5\" y=\"58\" width=\"88\" height=\"48\" rx=\"7\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n    <text x=\"562.5\" y=\"80\" text-anchor=\"middle\" font-size=\"9.4\" fill=\"#213033\">示踪/产剖</text>\n    <text x=\"562.5\" y=\"94\" text-anchor=\"middle\" font-size=\"8\" font-family=\"monospace\" fill=\"#7d898c\">06</text>\n    \n  <path d=\"M20 135h600\" stroke=\"#e4e0d5\"/>\n  <text x=\"20\" y=\"155\" font-size=\"10.5\" fill=\"#356354\">最终输出：裂缝半长、半高与不确定带</text>\n  <text x=\"620\" y=\"155\" text-anchor=\"end\" font-size=\"9.5\" font-family=\"monospace\" fill=\"#b46d3b\">HUMAN-IN-THE-LOOP</text>\n</svg></div><div class=\"figcap\"><b>图</b><span>智能方法不是替代整个石油工序，而是嵌入一个可定义的子问题：输入多源观测，输出候选、风险或几何。</span></div>"
+        },
+        {
+          "no": 3,
+          "en": "DATA",
+          "title": "你需要准备什么",
+          "html": "<p>需要按压裂段组织微地震事件及定位质量、泵压/排量/砂量、天然裂缝模型、示踪剂回收与产剖。仅有微地震图而缺少施工和产出验证，只能形成示意，不能训练可靠的几何反演。</p><div class=\"figure\"><svg viewBox=\"0 0 640 210\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"数据准备矩阵\">\n  <rect x=\"8\" y=\"8\" width=\"624\" height=\"194\" rx=\"10\" fill=\"#f8f7f2\" stroke=\"#e4e0d5\"/>\n  <text x=\"24\" y=\"31\" font-size=\"10\" font-family=\"monospace\" fill=\"#7d898c\">DATA READINESS · 数据准备就绪度</text>\n  <rect x=\"24\" y=\"54\" width=\"108\" height=\"39\" rx=\"6\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n    <circle cx=\"38\" cy=\"70\" r=\"4\" fill=\"#2f7d6b\" opacity=\".78\"/>\n    <text x=\"48\" y=\"74\" font-size=\"9.5\" fill=\"#213033\">事件点云</text>\n    <rect x=\"36\" y=\"81\" width=\"78\" height=\"3\" rx=\"1.5\" fill=\"#e9e6de\"/>\n    <rect x=\"36\" y=\"81\" width=\"70\" height=\"3\" rx=\"1.5\" fill=\"#2f7d6b\" opacity=\".76\"/><rect x=\"144\" y=\"54\" width=\"108\" height=\"39\" rx=\"6\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n    <circle cx=\"158\" cy=\"70\" r=\"4\" fill=\"#2f7d6b\" opacity=\".78\"/>\n    <text x=\"168\" y=\"74\" font-size=\"9.5\" fill=\"#213033\">压力排量</text>\n    <rect x=\"156\" y=\"81\" width=\"78\" height=\"3\" rx=\"1.5\" fill=\"#e9e6de\"/>\n    <rect x=\"156\" y=\"81\" width=\"70\" height=\"3\" rx=\"1.5\" fill=\"#2f7d6b\" opacity=\".76\"/><rect x=\"264\" y=\"54\" width=\"108\" height=\"39\" rx=\"6\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n    <circle cx=\"278\" cy=\"70\" r=\"4\" fill=\"#b46d3b\" opacity=\".78\"/>\n    <text x=\"288\" y=\"74\" font-size=\"9.5\" fill=\"#213033\">天然裂缝</text>\n    <rect x=\"276\" y=\"81\" width=\"78\" height=\"3\" rx=\"1.5\" fill=\"#e9e6de\"/>\n    <rect x=\"276\" y=\"81\" width=\"58\" height=\"3\" rx=\"1.5\" fill=\"#d1a23f\" opacity=\".76\"/><rect x=\"384\" y=\"54\" width=\"108\" height=\"39\" rx=\"6\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n    <circle cx=\"398\" cy=\"70\" r=\"4\" fill=\"#b46d3b\" opacity=\".78\"/>\n    <text x=\"408\" y=\"74\" font-size=\"9.5\" fill=\"#213033\">示踪回收</text>\n    <rect x=\"396\" y=\"81\" width=\"78\" height=\"3\" rx=\"1.5\" fill=\"#e9e6de\"/>\n    <rect x=\"396\" y=\"81\" width=\"48\" height=\"3\" rx=\"1.5\" fill=\"#d1a23f\" opacity=\".76\"/><rect x=\"504\" y=\"54\" width=\"108\" height=\"39\" rx=\"6\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n    <circle cx=\"518\" cy=\"70\" r=\"4\" fill=\"#2f7d6b\" opacity=\".78\"/>\n    <text x=\"528\" y=\"74\" font-size=\"9.5\" fill=\"#213033\">分段时间</text>\n    <rect x=\"516\" y=\"81\" width=\"78\" height=\"3\" rx=\"1.5\" fill=\"#e9e6de\"/>\n    <rect x=\"516\" y=\"81\" width=\"70\" height=\"3\" rx=\"1.5\" fill=\"#2f7d6b\" opacity=\".76\"/>\n  <text x=\"24\" y=\"185\" font-size=\"9.5\" fill=\"#536267\">建议先解决：深度/时间对齐 · 标签口径 · 异常段记录，再讨论增加模型规模。</text>\n</svg></div><div class=\"figcap\"><b>图</b><span>先检查数据的时间/深度对齐和标签口径。缺少数值可以用模型补，缺少可追溯的工程含义则无法可靠验证。</span></div><ul style=\"margin:12px 0 0;padding-left:0;list-style:none;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px\"><li><b>事件点云</b><span>核心输入</span></li><li><b>压力排量</b><span>关键约束</span></li><li><b>天然裂缝</b><span>长尾/异常</span></li><li><b>示踪回收</b><span>空间或时间对齐</span></li><li><b>分段时间</b><span>人工复核依据</span></li></ul>"
+        },
+        {
+          "no": 4,
+          "en": "DIFFICULTY",
+          "title": "技术难度与参考方向",
+          "html": "<p><span class=\"dtag\" data-d=\"高\">难度 高</span> <span class=\"small muted\">属于强不适定问题：不同裂缝形态可能产生相似的地表响应。真正可落地的方式是输出概率与区间，并用新段数据持续校准。</span></p><div class=\"figure\"><svg viewBox=\"0 0 640 188\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"技术风险剖面\">\n  <text x=\"20\" y=\"22\" font-size=\"10\" font-family=\"monospace\" fill=\"#7d898c\">RISK PROFILE · 越靠右越需要验证</text>\n  <text x=\"20\" y=\"49\" font-size=\"9.5\" fill=\"#536267\">真值缺失</text>\n    <rect x=\"104\" y=\"40\" width=\"430\" height=\"9\" rx=\"4.5\" fill=\"#ece9e1\"/>\n    <rect x=\"104\" y=\"40\" width=\"391.3\" height=\"9\" rx=\"4.5\" fill=\"#b0574e\" opacity=\".76\"/>\n    <text x=\"548\" y=\"49\" font-size=\"9\" font-family=\"monospace\" fill=\"#7d898c\">91</text><text x=\"20\" y=\"80\" font-size=\"9.5\" fill=\"#536267\">定位误差</text>\n    <rect x=\"104\" y=\"71\" width=\"430\" height=\"9\" rx=\"4.5\" fill=\"#ece9e1\"/>\n    <rect x=\"104\" y=\"71\" width=\"361.2\" height=\"9\" rx=\"4.5\" fill=\"#b0574e\" opacity=\".76\"/>\n    <text x=\"548\" y=\"80\" font-size=\"9\" font-family=\"monospace\" fill=\"#7d898c\">84</text><text x=\"20\" y=\"111\" font-size=\"9.5\" fill=\"#536267\">多源错位</text>\n    <rect x=\"104\" y=\"102\" width=\"430\" height=\"9\" rx=\"4.5\" fill=\"#ece9e1\"/>\n    <rect x=\"104\" y=\"102\" width=\"296.7\" height=\"9\" rx=\"4.5\" fill=\"#d1a23f\" opacity=\".76\"/>\n    <text x=\"548\" y=\"111\" font-size=\"9\" font-family=\"monospace\" fill=\"#7d898c\">69</text><text x=\"20\" y=\"142\" font-size=\"9.5\" fill=\"#536267\">跨区迁移</text>\n    <rect x=\"104\" y=\"133\" width=\"430\" height=\"9\" rx=\"4.5\" fill=\"#ece9e1\"/>\n    <rect x=\"104\" y=\"133\" width=\"245.1\" height=\"9\" rx=\"4.5\" fill=\"#2f7d6b\" opacity=\".76\"/>\n    <text x=\"548\" y=\"142\" font-size=\"9\" font-family=\"monospace\" fill=\"#7d898c\">57</text>\n  <text x=\"20\" y=\"176\" font-size=\"9.5\" fill=\"#213033\">高难度不等于不可做：先做可解释基线，再按不确定性设置人工复核门槛。</text>\n</svg></div><div class=\"figcap\"><b>图</b><span>不同案例的卡点不同：这里把主要风险拆开，避免“模型分数很高但工程不可用”。</span></div><div class=\"refs\"><span class=\"ref\">多源反演</span><span class=\"ref\">不适定问题正则化</span><span class=\"ref\">不确定性量化</span><span class=\"ref\">图神经网络</span></div>"
+        }
+      ]
+    },
+    "workflow": {
+      "label": "案例流程",
+      "title": "压裂裂缝形态预测：多源融合与不确定带 · 一段可复用的落地流程",
+      "lead": [
+        "这个案例把“E2 场景”拆成四步：先把数据变成同一时间/空间基准，再让模型缩圈，最后把不确定性和工程约束交回人。",
+        "每个步骤下方都有一张对应的流程图，说明这一步实际输入什么、输出什么、最容易死在哪里。"
+      ],
+      "stats": [
+        [
+          "微地震事件",
+          "4,600"
+        ],
+        [
+          "压裂段",
+          "120"
+        ],
+        [
+          "融合通道",
+          "6"
+        ],
+        [
+          "目标几何误差",
+          "≤25 m"
+        ]
+      ],
+      "steps": [
+        {
+          "name": "微地震事件清洗",
+          "role": "数据",
+          "do": "按定位质量、信噪比和施工阶段筛选事件，标记远场噪声和重复定位。",
+          "effect": "去掉低可信度点后再反演，避免裂缝被噪声“拉长”。",
+          "trap": "简单删掉弱事件会截断裂缝尖端，需要保留概率权重。",
+          "visual": "<svg viewBox=\"0 0 620 82\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"微地震事件清洗步骤示意\">\n    <rect x=\"2\" y=\"8\" width=\"616\" height=\"66\" rx=\"9\" fill=\"#f8f7f2\" stroke=\"#e4e0d5\"/>\n    <text x=\"17\" y=\"28\" font-size=\"9\" font-family=\"monospace\" fill=\"#7d898c\">STEP 01 · 数据</text>\n    <rect x=\"16\" y=\"38\" width=\"126\" height=\"24\" rx=\"5\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <text x=\"79\" y=\"54\" text-anchor=\"middle\" font-size=\"9\" fill=\"#213033\">原始事件</text>\n      <path d=\"M143 50h27\" stroke=\"#b46d3b\" stroke-width=\"1\"/><rect x=\"182\" y=\"38\" width=\"126\" height=\"24\" rx=\"5\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <text x=\"245\" y=\"54\" text-anchor=\"middle\" font-size=\"9\" fill=\"#213033\">置信度门限</text>\n      <path d=\"M309 50h27\" stroke=\"#b46d3b\" stroke-width=\"1\"/><rect x=\"348\" y=\"38\" width=\"126\" height=\"24\" rx=\"5\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <text x=\"411\" y=\"54\" text-anchor=\"middle\" font-size=\"9\" fill=\"#213033\">清洗点云</text>\n      \n    <rect x=\"523\" y=\"37\" width=\"80\" height=\"27\" rx=\"6\" fill=\"#e7f2ed\" stroke=\"#a8cfc2\"/>\n    <text x=\"563\" y=\"54\" text-anchor=\"middle\" font-size=\"8.6\" font-family=\"monospace\" fill=\"#2f7d6b\">保留 68%</text>\n  </svg>"
+        },
+        {
+          "name": "施工曲线分段",
+          "role": "解释",
+          "do": "识别起裂、扩展、加砂和停泵阶段，提取压力下降、净压力与排量响应。",
+          "effect": "为裂缝宽度和导流能力提供独立证据。",
+          "trap": "不同段采用不同泵注程序时，压力特征不能直接横比。",
+          "visual": "<svg viewBox=\"0 0 620 82\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"施工曲线分段步骤示意\">\n    <rect x=\"2\" y=\"8\" width=\"616\" height=\"66\" rx=\"9\" fill=\"#f8f7f2\" stroke=\"#e4e0d5\"/>\n    <text x=\"17\" y=\"28\" font-size=\"9\" font-family=\"monospace\" fill=\"#7d898c\">STEP 02 · 解释</text>\n    <rect x=\"16\" y=\"38\" width=\"126\" height=\"24\" rx=\"5\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <text x=\"79\" y=\"54\" text-anchor=\"middle\" font-size=\"9\" fill=\"#213033\">泵压曲线</text>\n      <path d=\"M143 50h27\" stroke=\"#b46d3b\" stroke-width=\"1\"/><rect x=\"182\" y=\"38\" width=\"126\" height=\"24\" rx=\"5\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <text x=\"245\" y=\"54\" text-anchor=\"middle\" font-size=\"9\" fill=\"#213033\">阶段边界</text>\n      <path d=\"M309 50h27\" stroke=\"#b46d3b\" stroke-width=\"1\"/><rect x=\"348\" y=\"38\" width=\"126\" height=\"24\" rx=\"5\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <text x=\"411\" y=\"54\" text-anchor=\"middle\" font-size=\"9\" fill=\"#213033\">响应特征</text>\n      \n    <rect x=\"523\" y=\"37\" width=\"80\" height=\"27\" rx=\"6\" fill=\"#e7f2ed\" stroke=\"#a8cfc2\"/>\n    <text x=\"563\" y=\"54\" text-anchor=\"middle\" font-size=\"8.6\" font-family=\"monospace\" fill=\"#2f7d6b\">阶段 4 类</text>\n  </svg>"
+        },
+        {
+          "name": "多模态几何反演",
+          "role": "算法",
+          "do": "融合事件点云、施工时序与天然裂缝方向先验，输出裂缝概率体和几何参数分布。",
+          "effect": "从“点云轮廓”升级为可量化的储层改造模型。",
+          "trap": "把事件包络直接当裂缝面，会高估改造体积。",
+          "visual": "<svg viewBox=\"0 0 620 82\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"多模态几何反演步骤示意\">\n    <rect x=\"2\" y=\"8\" width=\"616\" height=\"66\" rx=\"9\" fill=\"#f8f7f2\" stroke=\"#e4e0d5\"/>\n    <text x=\"17\" y=\"28\" font-size=\"9\" font-family=\"monospace\" fill=\"#7d898c\">STEP 03 · 算法</text>\n    <rect x=\"16\" y=\"38\" width=\"126\" height=\"24\" rx=\"5\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <text x=\"79\" y=\"54\" text-anchor=\"middle\" font-size=\"9\" fill=\"#213033\">点云编码</text>\n      <path d=\"M143 50h27\" stroke=\"#b46d3b\" stroke-width=\"1\"/><rect x=\"182\" y=\"38\" width=\"126\" height=\"24\" rx=\"5\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <text x=\"245\" y=\"54\" text-anchor=\"middle\" font-size=\"9\" fill=\"#213033\">时序编码</text>\n      <path d=\"M309 50h27\" stroke=\"#b46d3b\" stroke-width=\"1\"/><rect x=\"348\" y=\"38\" width=\"126\" height=\"24\" rx=\"5\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <text x=\"411\" y=\"54\" text-anchor=\"middle\" font-size=\"9\" fill=\"#213033\">概率体</text>\n      \n    <rect x=\"523\" y=\"37\" width=\"80\" height=\"27\" rx=\"6\" fill=\"#e7f2ed\" stroke=\"#a8cfc2\"/>\n    <text x=\"563\" y=\"54\" text-anchor=\"middle\" font-size=\"8.6\" font-family=\"monospace\" fill=\"#2f7d6b\">多解收敛</text>\n  </svg>"
+        },
+        {
+          "name": "验证与不确定性复核",
+          "role": "质控",
+          "do": "用示踪剂、产剖和邻段干扰验证几何，标出低置信区并回流新样本。",
+          "effect": "输出可直接进入压裂评估的区间估计。",
+          "trap": "验证数据通常只有少数井，不能按随机划分评估。",
+          "visual": "<svg viewBox=\"0 0 620 82\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"验证与不确定性复核步骤示意\">\n    <rect x=\"2\" y=\"8\" width=\"616\" height=\"66\" rx=\"9\" fill=\"#f8f7f2\" stroke=\"#e4e0d5\"/>\n    <text x=\"17\" y=\"28\" font-size=\"9\" font-family=\"monospace\" fill=\"#7d898c\">STEP 04 · 质控</text>\n    <rect x=\"16\" y=\"38\" width=\"126\" height=\"24\" rx=\"5\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <text x=\"79\" y=\"54\" text-anchor=\"middle\" font-size=\"9\" fill=\"#213033\">几何预测</text>\n      <path d=\"M143 50h27\" stroke=\"#b46d3b\" stroke-width=\"1\"/><rect x=\"182\" y=\"38\" width=\"126\" height=\"24\" rx=\"5\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <text x=\"245\" y=\"54\" text-anchor=\"middle\" font-size=\"9\" fill=\"#213033\">示踪验证</text>\n      <path d=\"M309 50h27\" stroke=\"#b46d3b\" stroke-width=\"1\"/><rect x=\"348\" y=\"38\" width=\"126\" height=\"24\" rx=\"5\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <text x=\"411\" y=\"54\" text-anchor=\"middle\" font-size=\"9\" fill=\"#213033\">区间校准</text>\n      \n    <rect x=\"523\" y=\"37\" width=\"80\" height=\"27\" rx=\"6\" fill=\"#e7f2ed\" stroke=\"#a8cfc2\"/>\n    <text x=\"563\" y=\"54\" text-anchor=\"middle\" font-size=\"8.6\" font-family=\"monospace\" fill=\"#2f7d6b\">误差 ±21 m</text>\n  </svg>"
+        }
+      ],
+      "metrics": {
+        "title": "怎么算“做对了”",
+        "html": "<div class=\"figure\"><svg viewBox=\"0 0 620 168\" xmlns=\"http://www.w3.org/2000/svg\" role=\"img\" aria-label=\"四步案例流程总览\">\n    <text x=\"14\" y=\"26\" font-size=\"9.5\" font-family=\"monospace\" fill=\"#7d898c\">WORKFLOW MAP · 输入 / 处理 / 输出 / 验收</text>\n    <path d=\"M15 39h590\" stroke=\"#e4e0d5\"/>\n    <rect x=\"14\" y=\"54\" width=\"132\" height=\"82\" rx=\"8\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <rect x=\"14\" y=\"54\" width=\"3\" height=\"82\" rx=\"1.5\" fill=\"#2f7d6b\"/>\n      <text x=\"26\" y=\"75\" font-size=\"9\" font-family=\"monospace\" fill=\"#2f7d6b\">STEP 01</text>\n      <text x=\"26\" y=\"94\" font-size=\"10\" fill=\"#213033\">微地震事件清洗</text>\n      <text x=\"26\" y=\"108\" font-size=\"10\" fill=\"#213033\"></text>\n      <text x=\"26\" y=\"126\" font-size=\"8.2\" fill=\"#7d898c\">原始事件 / 置信度门限 / 清洗点云</text>\n      <path d=\"M150 95h11\" stroke=\"#b46d3b\" stroke-width=\"1.3\"/><rect x=\"165\" y=\"54\" width=\"132\" height=\"82\" rx=\"8\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <rect x=\"165\" y=\"54\" width=\"3\" height=\"82\" rx=\"1.5\" fill=\"#41699b\"/>\n      <text x=\"177\" y=\"75\" font-size=\"9\" font-family=\"monospace\" fill=\"#41699b\">STEP 02</text>\n      <text x=\"177\" y=\"94\" font-size=\"10\" fill=\"#213033\">施工曲线分段</text>\n      <text x=\"177\" y=\"108\" font-size=\"10\" fill=\"#213033\"></text>\n      <text x=\"177\" y=\"126\" font-size=\"8.2\" fill=\"#7d898c\">泵压曲线 / 阶段边界 / 响应特征</text>\n      <path d=\"M301 95h11\" stroke=\"#b46d3b\" stroke-width=\"1.3\"/><rect x=\"316\" y=\"54\" width=\"132\" height=\"82\" rx=\"8\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <rect x=\"316\" y=\"54\" width=\"3\" height=\"82\" rx=\"1.5\" fill=\"#b46d3b\"/>\n      <text x=\"328\" y=\"75\" font-size=\"9\" font-family=\"monospace\" fill=\"#b46d3b\">STEP 03</text>\n      <text x=\"328\" y=\"94\" font-size=\"10\" fill=\"#213033\">多模态几何反演</text>\n      <text x=\"328\" y=\"108\" font-size=\"10\" fill=\"#213033\"></text>\n      <text x=\"328\" y=\"126\" font-size=\"8.2\" fill=\"#7d898c\">点云编码 / 时序编码 / 概率体</text>\n      <path d=\"M452 95h11\" stroke=\"#b46d3b\" stroke-width=\"1.3\"/><rect x=\"467\" y=\"54\" width=\"132\" height=\"82\" rx=\"8\" fill=\"#fff\" stroke=\"#e4e0d5\"/>\n      <rect x=\"467\" y=\"54\" width=\"3\" height=\"82\" rx=\"1.5\" fill=\"#7e5a8d\"/>\n      <text x=\"479\" y=\"75\" font-size=\"9\" font-family=\"monospace\" fill=\"#7e5a8d\">STEP 04</text>\n      <text x=\"479\" y=\"94\" font-size=\"10\" fill=\"#213033\">验证与不确定性</text>\n      <text x=\"479\" y=\"108\" font-size=\"10\" fill=\"#213033\">复核</text>\n      <text x=\"479\" y=\"126\" font-size=\"8.2\" fill=\"#7d898c\">几何预测 / 示踪验证 / 区间校准</text>\n      \n    <text x=\"14\" y=\"156\" font-size=\"9.5\" fill=\"#2f7d6b\">人负责异常确认、工程约束与最终决策；AI 负责缩圈、排序与不确定性提示。</text>\n  </svg></div><div class=\"figcap\"><b>流程总览</b><span>四步共享同一组术语和验收指标，避免从专业背景到交互示范时发生语义漂移。</span></div><p>除了长度和高度误差，还要看方向误差、事件覆盖率与区间校准率。例如 90% 不确定带里实际形态应至少出现 90% 的验证样本，否则只是“画得宽”，并未真正表达不确定性。</p><div style=\"display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px\"><div style=\"padding:10px 12px;background:#e7f2ed;border-radius:7px\"><b>先看工程收益</b><br><span class=\"small muted\">时间、误差或风险是否真的下降。</span></div><div style=\"padding:10px 12px;background:#f8ecdf;border-radius:7px\"><b>再看模型可靠性</b><br><span class=\"small muted\">外推、迁移和不确定性是否被显式处理。</span></div></div>"
+      },
+      "fails": [
+        {
+          "name": "事件包络等于裂缝",
+          "why": "把微地震事件外包络直接当裂缝面，常高估储层改造体积。"
+        },
+        {
+          "name": "诱导事件混入",
+          "why": "施工扰动和远场噪声被当裂缝扩展，导致尖端虚长。"
+        },
+        {
+          "name": "只报点估计",
+          "why": "下游无法判断方案能否承担误差，应该同时交付概率区间。"
+        }
+      ]
+    },
+    "demo": {
+      "mode": "auto",
+      "html": "demo/index.html",
+      "label": "可运行示范",
+      "intro": "拖动参数，观察智能化方法如何把一个石油场景变成可解释的候选和风险判断。",
+      "height": 620
+    }
+  }
+}
